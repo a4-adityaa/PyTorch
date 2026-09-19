@@ -78,3 +78,27 @@ with torch.inference_mode():
 
 plot_predictions(predictions=y_preds)
 # plt.show()
+
+# now set loss function
+loss_fn = nn.L1Loss() # MAE is same as L1 loss
+
+optimizer= torch.optim.SGD(params=model_0.parameters(), # parameneter of target model to train
+                           lr=0.01) # learning rate
+
+
+# Train model;
+
+for epoch in range(epochs):
+    model_0.train() # put model in training mode
+
+    y_pred = model_0(x_train) # forward pass
+
+    loss = loss_fn(y_pred, y_train) # calculate loss
+
+    optimizer.zero_grad() # zero the gradients
+
+    loss.backward() # backward pass
+
+    optimizer.step() # update the parameters
+
+    model_0.eval() # put model in evaluation mode
