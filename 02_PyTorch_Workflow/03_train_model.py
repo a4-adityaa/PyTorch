@@ -46,7 +46,7 @@ def plot_predictions(train_data=x_train,  # we are giving defalut parameters if 
     plt.legend(fontsize=14) # used to define the size of text labels
     # plt.show() # show the graphs
 
-plot_predictions()
+# plot_predictions()
 
 class linearregressionModel(nn.Module): #nn.module cover all the alogorithm
     def __init__(self):
@@ -76,7 +76,7 @@ model_0 = linearregressionModel()
 with torch.inference_mode():
     y_preds = model_0(x_test)
 
-plot_predictions(predictions=y_preds)
+# plot_predictions(predictions=y_preds)
 # plt.show()
 
 # now set loss function
@@ -87,6 +87,12 @@ optimizer= torch.optim.SGD(params=model_0.parameters(), # parameneter of target 
 
 
 # Train model;
+epochs=100
+
+# for keep track of data
+train_loss_values = []
+test_loss_values = []
+epoch_count = []
 
 for epoch in range(epochs):
     model_0.train() # put model in training mode
@@ -94,6 +100,7 @@ for epoch in range(epochs):
     y_pred = model_0(x_train) # forward pass
 
     loss = loss_fn(y_pred, y_train) # calculate loss
+    # print(f"loss: {loss}")
 
     optimizer.zero_grad() # zero the gradients
 
@@ -102,3 +109,26 @@ for epoch in range(epochs):
     optimizer.step() # update the parameters
 
     model_0.eval() # put model in evaluation mode
+
+    with torch.inference_mode():
+        test_pred = model_0(x_test)
+        test_loss = loss_fn(test_pred, y_test.type(torch.float)) # predictions come in torch.float datatype, so comparisons need to be done with tensors of the same type
+
+        if epoch %10 == 0:
+            epoch_count.append(epoch)
+            train_loss_values.append(loss.detach().numpy())
+            test_loss_values.append(test_loss.detach().numpy())
+            print(f"epoch: {epoch} | loss: {loss} | test_loss: {test_loss}")
+
+print(model_0.state_dict())
+# plot_predictions(predictions=test_pred)
+# plt.show()
+
+# Plot the loss curves
+plt.plot(epoch_count, train_loss_values, label="Train loss")
+plt.plot(epoch_count, test_loss_values, label="Test loss")
+plt.title("Training and test loss curves")
+plt.ylabel("Loss")
+plt.xlabel("Epochs")
+plt.legend();
+plt.show()
