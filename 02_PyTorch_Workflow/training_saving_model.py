@@ -3,6 +3,7 @@
 import torch
 from torch import nn # nn contains all of PyTorch's building blocks for neural networks
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 # creating known paramenter
 weight=0.3
@@ -87,7 +88,7 @@ optimizer= torch.optim.SGD(params=model_0.parameters(), # parameneter of target 
 
 
 # Train model;
-epochs=100
+epochs=1000
 
 # for keep track of data
 train_loss_values = []
@@ -118,9 +119,9 @@ for epoch in range(epochs):
             epoch_count.append(epoch)
             train_loss_values.append(loss.detach().numpy())
             test_loss_values.append(test_loss.detach().numpy())
-            print(f"epoch: {epoch} | loss: {loss} | test_loss: {test_loss}")
+            # print(f"epoch: {epoch} | loss: {loss} | test_loss: {test_loss}")
 
-print(model_0.state_dict())
+# print(model_0.state_dict())
 # plot_predictions(predictions=test_pred)
 # plt.show()
 
@@ -131,4 +132,22 @@ plt.title("Training and test loss curves")
 plt.ylabel("Loss")
 plt.xlabel("Epochs")
 plt.legend();
-plt.show()
+# plt.show()
+
+# Saving a PyTorch model
+# 1. create model directory
+MODEL_PATH= Path("Models") 
+MODEL_PATH.mkdir(parents=True,exist_ok= True)
+
+# 2. Create model save path
+MODEL_NAME="Model_0.pth"
+MODEL_SAVE_PATH= MODEL_PATH / MODEL_NAME
+
+# 3. Save model's state dict
+print(f"Saving a model to: {MODEL_SAVE_PATH}")
+
+torch.save(                  # saving start from here
+    obj=model_0.state_dict(), # kya store kr rhe i.e weights and bias in form of dictionay
+    f=MODEL_SAVE_PATH # kis jagah save krna hai
+)
+# print(MODEL_SAVE_PATH.exists()) # checks whaeter the model exits or not
