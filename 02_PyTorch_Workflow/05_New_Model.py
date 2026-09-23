@@ -47,3 +47,56 @@ def plot_predictions(train_data=x_train,
     # plt.show() # show the graphs
 
 # plot_predictions()
+
+# now we make a model using linear.nn
+
+class LinearRegressionModelv2(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        # now we use nn.linear instead of defining weight and bias;
+        self.linear_layer= nn.Linear(in_features=1, out_features=1) # in_features is the no of features we have in our data
+                                                                      # out_features is the no of features we want to predict
+
+        def forward(self, x: torch.tensor) -> torch.tensor:
+            return self.linear_layer(x)
+
+# set manual seed;
+torch.manual_seed(42)
+model_1 = LinearRegressionModelv2()
+# print(model_1.state_dict())
+
+loss_fn= nn.L1Loss() # mean absolute error
+
+optimizer= torch.optim.SGD(params=model_1.parameters(), lr=0.01)
+
+epochs=100
+
+for epoch in range(epochs):
+    # set the model to training mode
+    model_1.train() 
+
+    # forward pass
+    y_pred= x_train(model_1)
+
+    # calculate loss
+    loss_fn= nn.L1Loss() # mean absolute error
+    loss= loss_fn(y_pred,x_test)
+
+    # set optimizer
+    optimizer.zero_grad()
+    # loss backward
+    loss.backward()
+    # optimizer step
+    optimizer.step()
+
+    # testing
+    model_1.eval() # set the model to evaluation mode
+
+    with torch.inference_mode:
+        test_pred= model_1(x_test)
+
+    # calculate loss
+    test_loss= loss_fn(y_pred, x_test.dtype(torch.float32))
+    if epoch % 10 == 0:
+        print(f"Epoch: {epoch} | Loss: {loss}")
