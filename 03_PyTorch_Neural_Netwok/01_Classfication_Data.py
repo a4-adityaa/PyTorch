@@ -3,6 +3,7 @@ from sklearn.datasets import make_circles
 import pandas as pd
 import matplotlib.pyplot as plt
 import torch
+from torch import nn
 
 # create sample
 
@@ -55,4 +56,32 @@ x_train, x_test, y_train, y_test= train_test_split(x,
                                                    test_size=0.2, # 20% will be testing and 80% will be traing data
                                                    random_state=42) # random state is same as torch.manual_seed -> diffrent for  sckit learn
 
-print(len(x_train), len(y_train), len(x_test), len(y_test))
+# print(len(x_train), len(y_train), len(x_test), len(y_test))
+
+# Buliding a model;
+device= "cuda" if torch.cuda.is_available() else "cpu" # sets device digonistics
+# print(device)
+
+class circleModel1V0(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # creates 2 nn.layers capable of handling the shape of our data
+        self.layer_1= nn.Linear(in_features=2, out_features=5) # takes two in features and expands to 5
+        self.layer_2= nn.Linear(in_features=5, out_features=1) # takes in five features from previous layer and return a single layer ( same shapse as y)
+
+        # define a forward pass to outline forward pass
+        def forward(self, x):
+            return self.layer_2(self.layer_1(x)) # x -> layer_1 -> layer_2
+
+model_0= circleModel1V0()
+# print(model_0)
+
+''' Usinng nn. sequential
+Used to shorten code and if we don't want to explicilty define forward pass
+
+model_0= nn.sequential(
+layer_1= nn.linear(in_features=2, out_features=5)
+layer_2= nn.linear(in_features=5, out_features=1)
+)'''
+
+# print(model_0.state_dict())
