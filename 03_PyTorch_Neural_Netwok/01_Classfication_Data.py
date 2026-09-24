@@ -30,7 +30,7 @@ plt.scatter(x=x[:,0],
             c=y,
             cmap=plt.cm.RdYlBu)
 
-plt.show()
+# plt.show()
 
 # View the first example of features and labels
 X_sample = x[0]
@@ -47,4 +47,12 @@ y= torch.from_numpy(y).type(torch.float32)
 # print(f"first 5 data are : {x[:5]}")
 # print(f"first 5 data are : {y[:5]}")
 
+# now split data
+from sklearn.model_selection import train_test_split
 
+x_train, x_test, y_train, y_test= train_test_split(x,
+                                                   y,
+                                                   test_size=0.2, # 20% will be testing and 80% will be traing data
+                                                   random_state=42) # random state is same as torch.manual_seed -> diffrent for  sckit learn
+
+print(len(x_train), len(y_train), len(x_test), len(y_test))
