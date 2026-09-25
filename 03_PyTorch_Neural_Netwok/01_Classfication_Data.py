@@ -113,5 +113,16 @@ y_logits= model_0(x_test)[:5]
 
 # torch.sigmoid -> Model ke raw score ko understandable probabilty me convert krna
 y_preds_prob = torch.sigmoid(y_logits)
-print(y_preds_prob)
+# print(y_preds_prob)
 
+# now make make prediction using the sigmoid data
+y_preds= torch.round(y_preds_prob)
+
+# In full
+y_pred_labels = torch.round(torch.sigmoid(model_0(x_test)[:5]))
+
+# Check for equality
+print(torch.eq(y_preds.squeeze(), y_pred_labels.squeeze()))
+
+# Get rid of extra dimension
+print(y_preds.squeeze())
