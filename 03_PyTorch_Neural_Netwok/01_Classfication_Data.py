@@ -70,8 +70,8 @@ class circleModel1V0(nn.Module):
         self.layer_2= nn.Linear(in_features=5, out_features=1) # takes in five features from previous layer and return a single layer ( same shapse as y)
 
         # define a forward pass to outline forward pass
-        def forward(self, x):
-            return self.layer_2(self.layer_1(x)) # x -> layer_1 -> layer_2
+    def forward(self, x):
+        return self.layer_2(self.layer_1(x)) # x -> layer_1 -> layer_2
 
 model_0= circleModel1V0()
 # print(model_0)
@@ -80,8 +80,21 @@ model_0= circleModel1V0()
 Used to shorten code and if we don't want to explicilty define forward pass
 
 model_0= nn.sequential(
-layer_1= nn.linear(in_features=2, out_features=5)
-layer_2= nn.linear(in_features=5, out_features=1)
+    nn.linear(in_features=2, out_features=5)
+    nn.linear(in_features=5, out_features=1)
 )'''
 
 # print(model_0.state_dict())
+
+# now make ptredictions
+with torch.inference_mode():
+    untrained_preds= model_0(x_test)
+
+# print(f"length of prediction: {len(untrained_preds)} and shape: {untrained_preds.shape}")
+# print(f"length of test samples: {len(x_test)} and shape: {x_test.shape}")
+
+# now set loss_fn and optimizer
+
+loss_fn= nn.BCEWithLogitsLoss()
+optmizer= torch.optim.SGD(params=model_0.parameters(),
+                          lr=0.1)
