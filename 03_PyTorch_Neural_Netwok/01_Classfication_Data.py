@@ -98,3 +98,20 @@ with torch.inference_mode():
 loss_fn= nn.BCEWithLogitsLoss()
 optmizer= torch.optim.SGD(params=model_0.parameters(),
                           lr=0.1)
+
+# calculate accuracy -> out of 100 ex how much our model get right;
+def accuracy_fn(y_true, y_preds):
+    correct= torch.eq(y_true, y_preds).sum().item()
+    acc= (correct/len(y_preds))*100
+    return acc
+
+# Training a model;
+
+# y_logits -> ye generally raw output ko store krta hai
+y_logits= model_0(x_test)[:5]
+# print(y_logits)
+
+# torch.sigmoid -> Model ke raw score ko understandable probabilty me convert krna
+y_preds_prob = torch.sigmoid(y_logits)
+print(y_preds_prob)
+
