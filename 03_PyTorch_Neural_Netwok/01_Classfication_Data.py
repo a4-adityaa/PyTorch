@@ -122,7 +122,53 @@ y_preds= torch.round(y_preds_prob)
 y_pred_labels = torch.round(torch.sigmoid(model_0(x_test)[:5]))
 
 # Check for equality
-print(torch.eq(y_preds.squeeze(), y_pred_labels.squeeze()))
+# print(torch.eq(y_preds.squeeze(), y_pred_labels.squeeze()))
 
 # Get rid of extra dimension
-print(y_preds.squeeze())
+# print(y_preds.squeeze())
+
+# print(y_test[:5])
+
+" Now create training and testing loop"
+
+torch.manual_seed(42)
+
+epochs=100
+for epoch in range(epochs):
+    # Model train
+    model_0.train()
+
+    # forward pass (model output raw data)
+    y_logits= model_0(x_train).squeeze() # squeeze -> remove extra dimension
+    y_preds= torch.round(torch.sigmoid(y_logits)) #  turn logits -> pred probs -> pred labls
+
+    # calculate loss and accuracy
+    loss= loss_fn(y_logits, y_train)
+    acc= accuracy_fn(y_true=y_train,
+                     y_preds=y_preds)
+
+    # set zero grad
+    optmizer.zero_grad()
+
+    # loss backward
+    loss.backward()
+
+    # optimize zero grad
+    optmizer.step()
+
+    ### Testing
+    model_0.eval()
+    with torch.inference_mode():
+        # 1. Forward pass
+        test_logits = model_0(x_test).squeeze() 
+        test_pred = torch.round(torch.sigmoid(test_logits))
+        # 2. Caculate loss/accuracy
+        test_loss = loss_fn(test_logits,
+                            y_test)
+        test_acc = accuracy_fn(y_true=y_test,
+                               y_preds=test_pred)
+
+'''  #Print out what's happening every 10 epochs
+    if epoch % 10 == 0:
+        print(f"Epoch: {epoch} | Loss: {loss:.5f}, Accuracy: {acc:.2f}% | Test loss: {test_loss:.5f}, Test acc: {test_acc:.2f}%")
+        '''
