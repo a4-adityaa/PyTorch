@@ -188,3 +188,14 @@ else:
 '''
 
 from helper_functions import plot_predictions, plot_decision_boundary
+
+# Plot decision boundaries for training and test sets
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 2, 1)
+plt.title("Train")
+plot_decision_boundary(model_0, x_train, y_train)
+plt.subplot(1, 2, 2)
+plt.title("Test")
+plot_decision_boundary(model_0, x_test, y_test)
+# plt.show()
+
