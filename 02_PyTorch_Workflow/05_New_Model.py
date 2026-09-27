@@ -58,8 +58,8 @@ class LinearRegressionModelv2(nn.Module):
         self.linear_layer= nn.Linear(in_features=1, out_features=1) # in_features is the no of features we have in our data
                                                                       # out_features is the no of features we want to predict
 
-        def forward(self, x: torch.tensor) -> torch.tensor:
-            return self.linear_layer(x)
+    def forward(self, x: torch.tensor) -> torch.tensor:
+        return self.linear_layer(x)
 
 # set manual seed;
 torch.manual_seed(42)
@@ -77,7 +77,7 @@ for epoch in range(epochs):
     model_1.train() 
 
     # forward pass
-    y_pred= x_train(model_1)
+    y_pred= model_1(x_train)
 
     # calculate loss
     loss_fn= nn.L1Loss() # mean absolute error
