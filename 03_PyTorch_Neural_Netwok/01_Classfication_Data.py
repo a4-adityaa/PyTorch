@@ -190,12 +190,81 @@ else:
 from helper_functions import plot_predictions, plot_decision_boundary
 
 # Plot decision boundaries for training and test sets
-plt.figure(figsize=(12, 6))
+'''plt.figure(figsize=(12, 6))
 plt.subplot(1, 2, 1)
 plt.title("Train")
 plot_decision_boundary(model_0, x_train, y_train)
 plt.subplot(1, 2, 2)
 plt.title("Test")
 plot_decision_boundary(model_0, x_test, y_test)
-# plt.show()
+# plt.show()'''
 
+'''
+Now train a model with model's perspective
+1.increasing no. of epochs i.e 100 -> 1000
+2.increasing number of layers i.e 2 -> 3
+3.increaseing more hidden layer i.e 5 -> 10
+'''
+
+class circleModelv1(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.layer_1= nn.Linear(in_features=2, out_features=10)
+        self.layer_2= nn.Linear(in_features=10, out_features=10)
+        self.layer_3= nn.Linear(in_features=10, out_features=1)
+
+    def forward(self,x):
+        return self.layer_3(self.layer_2(self.layer_1(x)))    
+model_1 = circleModelv1()
+
+# print(model_1)
+
+"Now train our new model" 
+
+loss_fn= nn.BCEWithLogitsLoss()
+optmizer = torch.optim.SGD(params=model_1.parameters(),
+                           lr=0.1)
+
+torch.manual_seed(42)
+epochs_1 =1000
+for epoch in range(epochs_1):
+    model_1.train()
+
+    # forward pass
+    y_logits = model_1(x_train).squeeze()
+    y_preds = torch.round(torch.sigmoid(y_logits))
+
+    # calculate loss and accuarcy
+    loss = loss_fn(y_logits, y_train)
+    acc = accuracy_fn(y_true= y_train,
+                      y_preds=y_preds)
+
+    optmizer.zero_grad()
+    loss.backward()
+    optmizer.step()
+
+    model_1.eval()
+
+    with torch.inference_mode():
+        test_logits = model_1(x_test).squeeze()
+        test_preds = torch.round(torch.sigmoid(test_logits))
+
+        test_loss = loss_fn(test_logits, y_test)
+        test_acc = accuracy_fn(y_true=y_test,
+                               y_preds=test_preds)
+
+    # Print out what's happening every 10 epochs
+    # if epoch % 100 == 0:
+        # print(f"Epoch: {epoch} | Loss: {loss:.5f}, Accuracy: {acc:.2f}% | Test loss: {test_loss:.5f}, Test acc: {test_acc:.2f}%")
+
+# Plot decision boundaries for training and test sets
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 2, 1)
+plt.title("Train")
+plot_decision_boundary(model_1, x_train, y_train)
+plt.subplot(1, 2, 2)
+plt.title("Test")
+plot_decision_boundary(model_1, x_test, y_test)
+
+plt.show()
