@@ -2,6 +2,7 @@
 A series of helper functions used throughout the course.
 
 If a function gets defined once and could be used over and over, it'll go in here.
+
 """
 import torch
 import matplotlib.pyplot as plt
@@ -292,3 +293,4 @@ def download_data(source: str,
             os.remove(data_path / target_file)
     
     return image_path
+
