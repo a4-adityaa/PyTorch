@@ -267,4 +267,4 @@ plt.subplot(1, 2, 2)
 plt.title("Test")
 plot_decision_boundary(model_1, x_test, y_test)
 
-plt.show()
+# plt.show()
