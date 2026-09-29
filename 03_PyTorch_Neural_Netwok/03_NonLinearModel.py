@@ -110,4 +110,4 @@ plt.subplot(1, 2, 2)
 plt.title("Test")
 plot_decision_boundary(model_3, X_test, y_test) # model_3 = has non-linearity
 
-plt.showT()
+plt.show()
