@@ -108,3 +108,12 @@ class FashionMNISTModelV0(nn.Module):
     # forward pass
     def forward(self, x):
         self.layer_stack(x)
+
+# let's define models instace
+model_0= FashionMNISTModelV0(input_shape=784,
+                             hidden_unit=10,
+                             output_shape=len(class_name))
+
+from helper_functions import accuracy_fn
+loss_fn= nn.CrossEntropyLoss()
+optimzer= torch.optim.SGD(params=model_0.parameters(),lr=0.1)
