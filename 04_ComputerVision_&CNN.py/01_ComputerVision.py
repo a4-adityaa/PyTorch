@@ -117,3 +117,48 @@ model_0= FashionMNISTModelV0(input_shape=784,
 from helper_functions import accuracy_fn
 loss_fn= nn.CrossEntropyLoss()
 optimzer= torch.optim.SGD(params=model_0.parameters(),lr=0.1)
+
+# create a time function to calculate the total time to run our model
+
+from timeit import default_timer as timer
+def print_train_time(start: float, end: float, device: torch.device = None):
+    """Prints difference between start and end time.
+
+    Args:
+        start (float): Start time of computation (preferred in timeit format). 
+        end (float): End time of computation.
+        device ([type], optional): Device that compute is running on. Defaults to None.
+
+    Returns:
+        float: time between start and end in seconds (higher is longer).
+    """
+    total_time = end - start
+    print(f"Train time on {device}: {total_time:.3f} seconds") # .3f mean the output upto 3 decimal places
+    return total_time
+
+''' Now let's create training and testing loop '''
+
+torch.manual_seed(42)
+train_time_start_on_cpu = timer()
+
+from tqdm.auto import tqdm
+epochs =3
+
+for epoch in tqdm(range(epochs)): # tqdm is used to show the progress bar i.e how much training is completed
+    print(f"epoch: {epochs}\n..........")
+
+    train_loss = 0 # will keep tracl of train loss per batches
+
+    for batch, (X,y) in enumerate(train_dataloader):
+        model_0.train() # starts the training
+        y_preds= model_0(X) # forward passs : y_preds mean predicted data by the model
+
+        loss= loss_fn(y_preds, y) # compares predicted data with original label i.e y
+        train_loss += loss # add loss per batch
+
+        optimzer.zero_grad() # clears the tracking
+        loss.backward() # BackPropagation
+        optimzer.step() # optimizer step
+
+        if batch % 400 ==0:
+            print(f"Looked at {batch * len(X)}/{len(train_dataloader.dataset)} samples")
