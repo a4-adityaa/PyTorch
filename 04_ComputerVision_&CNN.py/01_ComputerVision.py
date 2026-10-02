@@ -91,7 +91,7 @@ for i in range(1, rows*cols+1):
     plt.imshow(img.squeeze(), cmap="gray")
     plt.title(class_name[label])
     plt.axis(False)
-plt.show()
+# plt.show()
 
 '''  Now let's create a model '''
 
@@ -107,7 +107,7 @@ class FashionMNISTModelV0(nn.Module):
 
     # forward pass
     def forward(self, x):
-        self.layer_stack(x)
+        return self.layer_stack(x)
 
 # let's define models instace
 model_0= FashionMNISTModelV0(input_shape=784,
@@ -133,7 +133,7 @@ def print_train_time(start: float, end: float, device: torch.device = None):
         float: time between start and end in seconds (higher is longer).
     """
     total_time = end - start
-    print(f"Train time on {device}: {total_time:.3f} seconds") # .3f mean the output upto 3 decimal places
+    # print(f"Train time on {device}: {total_time:.3f} seconds") # .3f mean the output upto 3 decimal places
     return total_time
 
 ''' Now let's create training and testing loop '''
@@ -142,23 +142,48 @@ torch.manual_seed(42)
 train_time_start_on_cpu = timer()
 
 from tqdm.auto import tqdm
-epochs =3
+epochs = 3
 
 for epoch in tqdm(range(epochs)): # tqdm is used to show the progress bar i.e how much training is completed
-    print(f"epoch: {epochs}\n..........")
+    # print(f"epoch: {epochs}\n..........")
 
     train_loss = 0 # will keep tracl of train loss per batches
 
-    for batch, (X,y) in enumerate(train_dataloader):
+    for batch, (X,y) in enumerate(train_dataloader): # enumurate takes class name with their data
+        ### Training
         model_0.train() # starts the training
-        y_preds= model_0(X) # forward passs : y_preds mean predicted data by the model
+        y_pred= model_0(X) # forward passs : y_preds mean predicted data by the model
 
-        loss= loss_fn(y_preds, y) # compares predicted data with original label i.e y
+        loss= loss_fn(y_pred, y) # compares predicted data with original label i.e y
         train_loss += loss # add loss per batch
 
         optimzer.zero_grad() # clears the tracking
         loss.backward() # BackPropagation
         optimzer.step() # optimizer step
 
-        if batch % 400 ==0:
-            print(f"Looked at {batch * len(X)}/{len(train_dataloader.dataset)} samples")
+        # if batch % 400 ==0:
+        #     print(f"Looked at {batch * len(X)}/{len(train_dataloader.dataset)} samples")
+
+    #Divide total train loss by length of train dataloader (average loss per batch per epoch)
+    train_loss /= len(train_dataloader)
+
+    ### Testing
+    test_loss, test_acc= 0,0
+    model_0.eval()
+    with torch.inference_mode():
+        for X,y in test_dataloader: # takes the data i.e train and test 
+            test_pred = model_0(X) # forward pass the train data
+
+            test_loss += loss_fn(test_pred, y) # stores the test loss per epoch
+            test_acc += accuracy_fn(y_true= y, y_pred= test_pred.argmax(dim=1)) # stores the accuracy per epoch
+
+        test_loss /= len(test_dataloader) # calculate avg test loss
+        test_acc /= len(test_dataloader) # calculate avg test accuracy
+
+    # print(f"\nTrain loss: {train_loss:.5f} | Test loss: {test_loss:.5f}, Test acc: {test_acc:.2f}%\n")
+
+# let's calculate the time;
+train_time_end_on_cpu = timer()
+total_train_time_model_0= print_train_time(start=train_time_start_on_cpu,
+                                           end=train_time_end_on_cpu,
+                                           device=str(next(model_0.parameters())))
