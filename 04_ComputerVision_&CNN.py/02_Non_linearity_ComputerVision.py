@@ -181,3 +181,12 @@ train_time_end_on_gpu = timer()
 total_train_time_model_1 = print_train_time(start=train_time_start_on_gpu,
                                             end=train_time_end_on_gpu,
                                             device=device)
+
+torch.manual_seed(42)
+from helper_functions import eval_model
+# Note: This will error due to `eval_model()` not using device agnostic code 
+model_1_results = eval_model(model=model_1, 
+    data_loader=test_dataloader,
+    loss_fn=loss_fn, 
+    accuracy_fn=accuracy_fn) 
+print(model_1_results) 
