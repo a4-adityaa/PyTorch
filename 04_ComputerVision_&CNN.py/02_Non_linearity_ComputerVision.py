@@ -64,15 +64,16 @@ class FashionMNISTModelV1(nn.Module):
             nn.Linear(in_features=input_shape, out_features=hidden_unit),
             nn.ReLU(), # -> non linear activation function
             nn.Linear(in_features=hidden_unit, out_features=hidden_unit),
-            nn.ReLU()
+            nn.ReLU(),
+            nn.Linear(in_features=hidden_unit, out_features=output_shape),
         )
 
     def forward(self, x: torch.Tensor):
         return self.layer_stack(x)
 
 " Now create instace of model "
-model_1= FashionMNISTModelV1(input_shape= 754,
-                             hidden_unit=10,
+model_1= FashionMNISTModelV1(input_shape= 784,
+                             hidden_unit=128,
                              output_shape=len(class_name))
 
 print(model_1)
@@ -149,3 +150,34 @@ def test_step(data_loader: torch.utils.data.DataLoader,
         test_loss /= len(data_loader)
         test_acc /= len(data_loader)
         print(f"Test loss: {test_loss:.5f} | Test accuracy: {test_acc:.2f}%\n")
+
+torch.manual_seed(42)
+
+# Measure time
+from timeit import default_timer as timer
+def print_train_time(start: float, end: float, device: torch.device = None):
+    total_time = end - start
+    # print(f"Train time on {device}: {total_time:.3f} seconds") # .3f mean the output upto 3 decimal places
+    return total_time
+train_time_start_on_gpu = timer()
+from tqdm import tqdm
+
+epochs = 3
+for epoch in tqdm(range(epochs)):
+    print(f"Epoch: {epoch}\n---------")
+    train_step(data_loader=train_dataloader, 
+        model=model_1, 
+        loss_fn=loss_fn,
+        optimizer=optimizer,
+        accuracy_fn=accuracy_fn
+    )
+    test_step(data_loader=test_dataloader,
+        model=model_1,
+        loss_fn=loss_fn,
+        accuracy_fn=accuracy_fn
+    )
+
+train_time_end_on_gpu = timer()
+total_train_time_model_1 = print_train_time(start=train_time_start_on_gpu,
+                                            end=train_time_end_on_gpu,
+                                            device=device)
