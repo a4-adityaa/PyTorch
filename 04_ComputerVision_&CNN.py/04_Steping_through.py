@@ -26,4 +26,21 @@ conv_layer = nn.Conv2d(in_channels=3,
 # Pass the data through the convolutional layer
 # print(conv_layer(test_image))
 
+# Add extra dimension to test image
+test_image.unsqueeze(dim=0).shape
+
+# Pass test image with extra dimension through conv_layer
+conv_layer(test_image.unsqueeze(dim=0)).shape # add print to show values
+
+torch.manual_seed(42)
+# Create a new conv_layer with different values (try setting these to whatever you like)
+conv_layer_2 = nn.Conv2d(in_channels=3, # same number of color channels as our input image
+                         out_channels=10,
+                         kernel_size=(5, 5), # kernel is usually a square so a tuple also works
+                         stride=2,
+                         padding=0)
+
+# Pass single image through new conv_layer_2 (this calls nn.Conv2d()'s forward() method on the input)
+conv_layer_2(test_image.unsqueeze(dim=0)).shape
+
 " Now let's test MaxPool2d() layer "
