@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import torchvision
 from torchvision import datasets
 from torchvision.transforms import ToTensor
+from tqdm import tqdm
 
 # data
 train_data= datasets.FashionMNIST(
@@ -61,7 +62,7 @@ class FashionMNISTModelV2(nn.Module):
                       stride=1,      # Kitne pixels jump karke next jagah jaa raha hoon?
                       padding=1),    # Border ke bahar kitni extra space add kar raha hoon?   refrences CNN.explainer
             nn.ReLU(),              # adds non~linearity
-            nn.Conv2d(in_channels=input_shape,
+            nn.Conv2d(in_channels=hidden_unit,
                       out_channels=hidden_unit,
                       kernel_size=3,
                       stride=1,
@@ -100,3 +101,41 @@ model_2= FashionMNISTModelV2(input_shape=1,
                              hidden_unit=10,
                              output_shape= len(class_name))
 # print(model_2)
+
+torch.manual_seed(42)
+
+" setup loss, optimizer and accuracy "
+from helper_functions import accuracy_fn
+loss_fn= nn.CrossEntropyLoss()
+optimizer= torch.optim.SGD(params=model_2.parameters(), lr=0.1)
+
+# Measure time
+from timeit import default_timer as timer
+train_time_start_model_2 = timer()
+
+# Train and test model 
+from helper_functions import train_step
+from helper_functions import test_step
+
+epochs = 3
+for epoch in tqdm(range(epochs)):
+    print(f"Epoch: {epoch}\n---------")
+    train_step(data_loader=train_dataloader, 
+        model=model_2, 
+        loss_fn=loss_fn,
+        optimizer=optimizer,
+        accuracy_fn=accuracy_fn,
+        device=device
+    )
+    test_step(data_loader=test_dataloader,
+        model=model_2,
+        loss_fn=loss_fn,
+        accuracy_fn=accuracy_fn,
+        device=device
+    )
+
+train_time_end_model_2 = timer()
+from helper_functions import print_train_time
+total_train_time_model_2 = print_train_time(start=train_time_start_model_2,
+                                           end=train_time_end_model_2,
+                                           device=device)
