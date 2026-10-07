@@ -135,3 +135,12 @@ test_data= datasets.ImageFolder(root=test_dir,
 
 # print(f"Train data: \n {train_data} \n Test data: \n{test_data}")
 
+class_name= train_data.classes # returns classes
+class_dict= train_data.class_to_idx # returns a dictionary
+
+img,label= train_data[0][0], train_data[0][1]
+# print(f"Image tensor:\n{img}")
+# print(f"Image shape: {img.shape}")
+# print(f"Image datatype: {img.dtype}")
+# print(f"Image label: {label}")
+# print(f"Label datatype: {type(label)}")
