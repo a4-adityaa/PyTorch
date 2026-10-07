@@ -71,9 +71,24 @@ test_dir= image_path / "test"
 
 # Setup path for target directory
 target_directory = train_dir
-print(f"Target directory: {target_directory}")
+# print(f"Target directory: {target_directory}")
 
 # Get the class names from the target directory
 class_names_found = sorted([entry.name for entry in list(os.scandir(image_path / "train"))])
-print(f"Class names found: {class_names_found}")
+# print(f"Class names found: {class_names_found}")
 
+# Make function to find classes in target directory
+def find_classes(directory: str) -> Tuple[List[str], Dict[str, int]]:
+   
+    # 1. Get the class names by scanning the target directory
+    classes = sorted(entry.name for entry in os.scandir(directory) if entry.is_dir())
+    
+    # 2. Raise an error if class names not found
+    if not classes:
+        raise FileNotFoundError(f"Couldn't find any classes in {directory}.")
+        
+    # 3. Create a dictionary of index labels (computers prefer numerical rather than string labels)
+    class_to_idx = {cls_name: i for i, cls_name in enumerate(classes)}
+    return classes, class_to_idx
+
+# print(find_classes(train_dir))
