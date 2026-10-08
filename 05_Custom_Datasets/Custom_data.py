@@ -304,11 +304,11 @@ def train_step(model= torch.nn.Module,
     model.train()
 
     #let's initilize test_acc and train_acc for accumulating 
-    train_acc, test_acc= 0,0
+    train_loss, train_acc= 0,0
 
     for batch, (x,y) in enumerate(dataloader):
         # Send data to target device
-        X, y = X.to(device), y.to(device)
+        x, y = x.to(device), y.to(device)
 
         # forward pass
         y_pred= model(x)
@@ -324,7 +324,7 @@ def train_step(model= torch.nn.Module,
         optimizer.step()
 
         y_pred_class= torch.argmax(torch.softmax(y_pred, dim=1), dim=1)
-        train_acc= (y_pred_class==y).sum().item()/ len(y_pred)
+        train_acc += (y_pred_class==y).sum().item()/ len(y_pred)
 
     # Adjust metrics to get average loss and accuracy per batch 
     train_loss = train_loss / len(dataloader)
@@ -376,10 +376,10 @@ def train(model: torch.nn.Module,
           loss_fn: torch.nn.Module = nn.CrossEntropyLoss(),
           epochs: int=5):
 
-    results= {"train_loss: ",[],
-              "train_acc: ",[],
-              "test_loss: ",[],
-              "test_acc:",[]}
+    results= {"train_loss":[],
+              "train_acc":[],
+              "test_loss":[],
+              "test_acc":[]}
 
     # 3. Loop through training and testing steps for a number of epochs
     for epoch in tqdm(range(epochs)):
@@ -409,3 +409,34 @@ def train(model: torch.nn.Module,
 
     # 6. Return the filled results at the end of the epochs
     return results
+
+" now train and evaluate our Model "
+
+torch.manual_seed(42)
+NUM_EPOCHS = 5
+
+# Recreate the instacne of Model_0
+
+model_0= TinyVGG(input_shape=3,
+                 hidden_unit=10,
+                 output_shape=len(train_data.classes)).to(device)
+
+# setup loss_fn and optimizer
+loss_fn= nn.CrossEntropyLoss()
+optimizer= torch.optim.Adam(params=model_0.parameters(), lr=0.001)
+
+# Start the timer
+from timeit import default_timer as timer 
+start_time = timer()
+
+# now train model_0
+
+model_0_results = train(model=model_0,
+                        train_dataloader=train_dataloader_simple,
+                        test_dataloader=test_dataloader_simple,
+                        optimizer=optimizer,
+                        loss_fn=loss_fn,
+                        epochs=NUM_EPOCHS)
+
+end_time= timer()
+print(f"Total train time: {end_time - start_time:.3f} seconds")
