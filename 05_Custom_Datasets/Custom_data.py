@@ -2,6 +2,12 @@ from pathlib import Path
 import requests
 import zipfile
 import matplotlib.pyplot as plt
+import torch
+
+
+# Setup device-agnostic code
+device = "cuda" if torch.cuda.is_available() else "cpu"
+device
 
 # Data folder
 data_path = Path("Data")
@@ -212,9 +218,9 @@ from torch import nn
 class TinyVGG(nn.Module):
 
     def __init__(self, input_shape: int, hidden_unit: int, output_shape: int) -> None:
-        self.__super__()
+        super().__init__()
 
-        self.conv_black_1= nn.Sequential(
+        self.conv_block_1= nn.Sequential(
             nn.Conv2d(in_channels=input_shape,
                       out_channels=hidden_unit,
                       kernel_size=3,
@@ -232,7 +238,7 @@ class TinyVGG(nn.Module):
                         stride=1),
         )
 
-        self.conv_black_2= nn.Sequential(
+        self.conv_block_2= nn.Sequential(
             nn.Conv2d(in_channels=hidden_unit,
                     out_channels=hidden_unit,
                     kernel_size=3,
@@ -246,10 +252,25 @@ class TinyVGG(nn.Module):
                       stride=1,
                       padding=1),
             nn.ReLU(),
-            nn.MaxPool2d()
+            nn.MaxPool2d(kernel_size=3,
+                         stride=1)
         )
-        self.Classifier= nn.Sequential(
+        self.classifier= nn.Sequential(
             nn.Flatten(),
             nn.Linear(in_features=hidden_unit*16*16,
                       out_features=output_shape)
         )
+
+    def forward(self, x: torch.Tensor):
+        self.conv_block_1(x)
+        self.conv_block_2(x)
+        self.classifier(x)
+
+        return x
+
+torch.manual_seed(42)
+model_0= TinyVGG(input_shape=3,
+                 hidden_unit=10,
+                 output_shape=len(train_data.classes)).to(device)
+
+print(model_0)
