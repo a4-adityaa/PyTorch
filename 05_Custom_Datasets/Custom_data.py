@@ -234,8 +234,8 @@ class TinyVGG(nn.Module):
                     stride=1,
                     padding=1),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=3,
-                        stride=1),
+            nn.MaxPool2d(kernel_size=2,
+                        stride=2),
         )
 
         self.conv_block_2= nn.Sequential(
@@ -252,8 +252,8 @@ class TinyVGG(nn.Module):
                       stride=1,
                       padding=1),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=3,
-                         stride=1)
+            nn.MaxPool2d(kernel_size=2,
+                         stride=2)
         )
         self.classifier= nn.Sequential(
             nn.Flatten(),
@@ -262,9 +262,9 @@ class TinyVGG(nn.Module):
         )
 
     def forward(self, x: torch.Tensor):
-        self.conv_block_1(x)
-        self.conv_block_2(x)
-        self.classifier(x)
+        x= self.conv_block_1(x)
+        x= self.conv_block_2(x)
+        x= self.classifier(x)
 
         return x
 
@@ -273,4 +273,62 @@ model_0= TinyVGG(input_shape=3,
                  hidden_unit=10,
                  output_shape=len(train_data.classes)).to(device)
 
-print(model_0)
+# print(model_0)
+
+# 1. Get a batch of images and labels from the DataLoader
+img_batch, label_batch = next(iter(train_dataloader_simple))
+
+# 2. Get a single image from the batch and unsqueeze the image so its shape fits the model
+img_single, label_single = img_batch[0].unsqueeze(dim=0), label_batch[0]
+# print(f"Single image shape: {img_single.shape}\n")
+
+# 3. Perform a forward pass on a single image
+model_0.eval()
+with torch.inference_mode():
+    pred = model_0(img_single.to(device))
+    
+# 4. Print out what's happening and convert model logits -> pred probs -> pred label
+# print(f"Output logits:\n{pred}\n")
+# print(f"Output prediction probabilities:\n{torch.softmax(pred, dim=1)}\n")
+# print(f"Output prediction label:\n{torch.argmax(torch.softmax(pred, dim=1), dim=1)}\n")
+# print(f"Actual label:\n{label_single}")
+
+" Now let's create a train_step() and test_step() function "
+
+def train_step(model= torch.nn.Module,
+               dataloader= torch.utils.data.DataLoader,
+               loss_fn= torch.nn.Module,
+               optimizer= torch.optim.Optimizer):
+    # let's train our model
+    model.train()
+
+    #let's initilize test_acc and train_acc for accumulating 
+    train_acc, test_acc= 0,0
+
+    for batch, (x,y) in enumerate(dataloader):
+        # Send data to target device
+        X, y = X.to(device), y.to(device)
+
+        # forward pass
+        y_pred= model(x)
+
+        # setup loss_fn and accumulate it
+        loss= loss_fn(y_pred,y)
+        train_loss += loss.item()
+
+        optimizer.zero_grad()
+
+        loss.backward()
+
+        optimizer.step()
+
+        y_pred_class= torch.argmax(torch.softmax(y_pred, dim=1), dim=1)
+        train_acc= (y_pred_class==y).sum().item()/ len(y_pred)
+
+    # Adjust metrics to get average loss and accuracy per batch 
+    train_loss = train_loss / len(dataloader)
+    train_acc = train_acc / len(dataloader)
+    return train_loss, train_acc
+
+" same for test step() "
+
