@@ -155,20 +155,20 @@ plt.figure(figsize=(10,7))
 plt.imshow(img.permute(1,2,0))
 plt.axis("off")
 plt.title(class_name[label], fontsize=14)
-plt.show()
+# plt.show()
 
 # now lets turn our train and test data into dataloader
 
-from torch.utils.data import Dataloader
+from torch.utils.data import DataLoader
 
 train_dataloader= DataLoader(dataset= train_data,
                              batch_size=1,
-                             num_workers=4, # no if cpu working
+                             num_workers=0, # no if cpu working
                              shuffle= True)
 
 test_dataloader= DataLoader(dataset=test_data,
                             batch_size=1,
-                            num_workers=4,
+                            num_workers=0,
                             shuffle= False)
 
 # print(train_dataloader, test_dataloader)
@@ -177,5 +177,79 @@ test_dataloader= DataLoader(dataset=test_data,
 
 img, label= next(iter(train_dataloader))
 
-print(f"Image shape {img.shape} -> [batch_size, color_chanels, height, width]")
-print(f"label shape: {label.shape}")
+# print(f"Image shape {img.shape} -> [batch_size, color_chanels, height, width]")
+# print(f"label shape: {label.shape}")
+
+
+simple_transform = transforms.Compose([ 
+    transforms.Resize((64, 64)),
+    transforms.ToTensor(),
+])
+# now load and transform model
+from torchvision import datasets
+
+train_data_simple= datasets.ImageFolder(root=train_dir, transform=simple_transform)
+test_data_simple= datasets.ImageFolder(root=test_dir, transform=simple_transform )
+
+BATCH_SIZE=32
+NUM_WORKER= 0
+print(f"Creating a dataloader with batchsize: {BATCH_SIZE} and {NUM_WORKER} num-worker.")
+
+train_dataloader_simple= DataLoader(train_data_simple,
+                                    batch_size=BATCH_SIZE,
+                                    num_workers=NUM_WORKER,
+                                    shuffle=True)
+
+test_dataloader_simple= DataLoader(test_data_simple,
+                                   batch_size= BATCH_SIZE,
+                                   num_workers=NUM_WORKER,
+                                   shuffle=False)
+
+print(train_dataloader_simple, test_dataloader_simple)
+
+" now let's create a TinyVGG model "
+from torch import nn
+class TinyVGG(nn.Module):
+
+    def __init__(self, input_shape: int, hidden_unit: int, output_shape: int) -> None:
+        self.__super__()
+
+        self.conv_black_1= nn.Sequential(
+            nn.Conv2d(in_channels=input_shape,
+                      out_channels=hidden_unit,
+                      kernel_size=3,
+                      stride=1,
+                      padding=1),
+            nn.ReLU(),
+
+            nn.Conv2d(in_channels= hidden_unit,
+                    out_channels=hidden_unit,
+                    kernel_size=3,
+                    stride=1,
+                    padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=3,
+                        stride=1),
+        )
+
+        self.conv_black_2= nn.Sequential(
+            nn.Conv2d(in_channels=hidden_unit,
+                    out_channels=hidden_unit,
+                    kernel_size=3,
+                    stride=1,
+                    padding=1),
+            nn.ReLU(),
+
+            nn.Conv2d(in_channels=hidden_unit,
+                      out_channels=hidden_unit,
+                      kernel_size=3,
+                      stride=1,
+                      padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d()
+        )
+        self.Classifier= nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(in_features=hidden_unit*16*16,
+                      out_features=output_shape)
+        )
