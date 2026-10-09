@@ -158,10 +158,10 @@ print(f"original shape: {img.shape} -> [color-chanel, height, width]")
 print(f"Image permute shape: {img_permute.shape} -> height, width, color-chanel")
 
 # plot
-plt.figure(figsize=(10,7))
-plt.imshow(img.permute(1,2,0))
-plt.axis("off")
-plt.title(class_name[label], fontsize=14)
+# plt.figure(figsize=(10,7))
+# plt.imshow(img.permute(1,2,0))
+# plt.axis("off")
+# plt.title(class_name[label], fontsize=14)
 # plt.show()
 
 # now lets turn our train and test data into dataloader
@@ -440,3 +440,261 @@ model_0_results = train(model=model_0,
 
 end_time= timer()
 print(f"Total train time: {end_time - start_time:.3f} seconds")
+
+print(model_0_results.keys())
+
+" Now let's plot curve to visulize "
+
+def plot_loss_curves(results: dict[str, list[float]]):
+
+    loss= results["train_loss"]
+    test_loss= results["test_loss"]
+
+     # Get the accuracy values of the results dictionary (training and test)
+    accuracy = results['train_acc']
+    test_accuracy = results['test_acc']
+
+    # Figure out how many epochs there were
+    epochs = range(len(results['train_loss']))
+
+    # Setup a plot 
+    plt.figure(figsize=(15, 7))
+
+    # Plot loss
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs, loss, label='train_loss')
+    plt.plot(epochs, test_loss, label='test_loss')
+    plt.title('Loss')
+    plt.xlabel('Epochs')
+    plt.legend()
+
+    # Plot accuracy
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs, accuracy, label='train_accuracy')
+    plt.plot(epochs, test_accuracy, label='test_accuracy')
+    plt.title('Accuracy')
+    plt.xlabel('Epochs')
+    plt.legend();
+
+plot_loss_curves(model_0_results)
+# plt.show()
+
+" Let's improve our model by Data Augmentation "
+
+# create training transform
+train_transform_trivial_augment = transforms.Compose([
+    transforms.Resize((64,64)),
+    transforms.TrivialAugmentWide(num_magnitude_bins=31),
+    transforms.ToTensor()
+])
+
+# Create testing transform (no data augmentation)
+test_transform = transforms.Compose([
+    transforms.Resize((64, 64)),
+    transforms.ToTensor()
+])
+
+# Turn image folders into Datasets
+train_data_augmented = datasets.ImageFolder(train_dir, transform=train_transform_trivial_augment)
+test_data_simple = datasets.ImageFolder(test_dir, transform=test_transform)
+
+# print(train_data_augmented, test_data_simple)
+
+# Turn Datasets into DataLoader's
+import os
+BATCH_SIZE = 32
+NUM_WORKERS = 0
+
+torch.manual_seed(42)
+train_dataloader_augmented = DataLoader(train_data_augmented, 
+                                        batch_size=BATCH_SIZE, 
+                                        shuffle=True,
+                                        num_workers=NUM_WORKERS)
+
+test_dataloader_simple = DataLoader(test_data_simple, 
+                                    batch_size=BATCH_SIZE, 
+                                    shuffle=False, 
+                                    num_workers=NUM_WORKERS)
+
+print(train_dataloader_augmented, test_dataloader)
+
+" now create another model and train it "
+
+torch.manual_seed(42)
+model_1 = TinyVGG(input_shape=3,
+                 hidden_unit=10,
+                 output_shape=len(train_data_augmented.classes)).to(device)
+
+print(model_1)
+
+" Now let's train our model_1 "
+
+torch.manual_seed(42)
+NUM_EPOCHS = 5
+
+# Setup loss function and optimizer
+loss_fn = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(params=model_1.parameters(), lr=0.001)
+
+# Start the timer
+from timeit import default_timer as timer 
+start_time = timer()
+
+# Train model_1
+model_1_results = train(model=model_1, 
+                        train_dataloader=train_dataloader_augmented,
+                        test_dataloader=test_dataloader_simple,
+                        optimizer=optimizer,
+                        loss_fn=loss_fn, 
+                        epochs=NUM_EPOCHS)
+
+# End the timer and print out how long it took
+
+end_time = timer()
+print(f"Total training time: {end_time-start_time:.3f} seconds")
+
+# now plot curves
+
+plot_loss_curves(model_1_results)
+# plt.show()
+
+" Now compare the Results of Model_0 and Model_1 "
+
+import pandas as pd
+model_0_df= pd.DataFrame(model_0_results)
+model_1_df= pd.DataFrame(model_1_results)
+model_0_df
+
+" Now plot data to visulize "
+
+# Setup a plot 
+plt.figure(figsize=(15, 10))
+
+# Get number of epochs
+epochs = range(len(model_0_df))
+
+# Plot train loss
+plt.subplot(2, 2, 1)
+plt.plot(epochs, model_0_df["train_loss"], label="Model 0")
+plt.plot(epochs, model_1_df["train_loss"], label="Model 1")
+plt.title("Train Loss")
+plt.xlabel("Epochs")
+plt.legend()
+
+# Plot test loss
+plt.subplot(2, 2, 2)
+plt.plot(epochs, model_0_df["test_loss"], label="Model 0")
+plt.plot(epochs, model_1_df["test_loss"], label="Model 1")
+plt.title("Test Loss")
+plt.xlabel("Epochs")
+plt.legend()
+
+# Plot train accuracy
+plt.subplot(2, 2, 3)
+plt.plot(epochs, model_0_df["train_acc"], label="Model 0")
+plt.plot(epochs, model_1_df["train_acc"], label="Model 1")
+plt.title("Train Accuracy")
+plt.xlabel("Epochs")
+plt.legend()
+
+# Plot test accuracy
+plt.subplot(2, 2, 4)
+plt.plot(epochs, model_0_df["test_acc"], label="Model 0")
+plt.plot(epochs, model_1_df["test_acc"], label="Model 1")
+plt.title("Test Accuracy")
+plt.xlabel("Epochs")
+plt.legend();
+
+# plt.show()
+
+" Now let's make prediction on random image "
+
+# Download custom image
+import requests
+
+# Setup custom image path
+custom_image_path = data_path / "04-pizza-dad.jpeg"
+
+# Download the image if it doesn't already exist
+if not custom_image_path.is_file():
+    with open(custom_image_path, "wb") as f:
+        # When downloading from GitHub, need to use the "raw" file link
+        request = requests.get("https://raw.githubusercontent.com/mrdbourke/pytorch-deep-learning/main/images/04-pizza-dad.jpeg")
+        print(f"Downloading {custom_image_path}...")
+        f.write(request.content)
+else:
+    print(f"{custom_image_path} already exists, skipping download.")
+
+# now transform our image 
+
+import torchvision
+
+# Read in custom image
+custom_image_uint8 = torchvision.io.read_image(str(custom_image_path))
+
+# Print out image data
+print(f"Custom image tensor:\n{custom_image_uint8}\n")
+print(f"Custom image shape: {custom_image_uint8.shape}\n")
+print(f"Custom image dtype: {custom_image_uint8.dtype}")
+
+# Now transform our image into the format our model trained on... else we can get error
+# Load in custom image and convert the tensor values to float32
+custom_image = torchvision.io.read_image(str(custom_image_path)).type(torch.float32)
+
+# Divide the image pixel values by 255 to get them between [0, 1]
+custom_image = custom_image / 255. 
+
+# Print out image data
+print(f"Custom image tensor:\n{custom_image}\n")
+print(f"Custom image shape: {custom_image.shape}\n")
+print(f"Custom image dtype: {custom_image.dtype}")
+
+# now plot custom image
+# Plot custom image
+plt.imshow(custom_image.permute(1, 2, 0)) # need to permute image dimensions from CHW -> HWC otherwise matplotlib will error
+plt.title(f"Image shape: {custom_image.shape}")
+plt.axis(False);
+# plt.show()
+
+# Create transform pipleine to resize image
+custom_image_transform = transforms.Compose([
+    transforms.Resize((64, 64)),
+])
+
+# Transform target image
+custom_image_transformed = custom_image_transform(custom_image)
+
+# Print out original shape and new shape
+print(f"Original shape: {custom_image.shape}")
+print(f"New shape: {custom_image_transformed.shape}")
+
+# now add batch size else we can get error
+model_1.eval()
+with torch.inference_mode():
+    # Add an extra dimension to image
+    custom_image_transformed_with_batch_size = custom_image_transformed.unsqueeze(dim=0)
+    
+    # Print out different shapes
+    print(f"Custom image transformed shape: {custom_image_transformed.shape}")
+    print(f"Unsqueezed custom image shape: {custom_image_transformed_with_batch_size.shape}")
+    
+    # Make a prediction on image with an extra dimension
+    custom_image_pred = model_1(custom_image_transformed.unsqueeze(dim=0).to(device))
+
+print(custom_image_pred)
+
+# Print out prediction logits
+print(f"Prediction logits: {custom_image_pred}")
+
+# Convert logits -> prediction probabilities (using torch.softmax() for multi-class classification)
+custom_image_pred_probs = torch.softmax(custom_image_pred, dim=1)
+print(f"Prediction probabilities: {custom_image_pred_probs}")
+
+# Convert prediction probabilities -> prediction labels
+custom_image_pred_label = torch.argmax(custom_image_pred_probs, dim=1)
+print(f"Prediction label: {custom_image_pred_label}")
+
+# Find the predicted label
+custom_image_pred_class = class_name[custom_image_pred_label.cpu()] # put pred label to CPU, otherwise will error
+custom_image_pred_class
+
