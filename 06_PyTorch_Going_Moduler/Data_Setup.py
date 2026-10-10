@@ -38,13 +38,12 @@ def create_dataloader(
                         batch_size= 32,
                         num_worker= 4)
     '''
-
-    # Get class name
-    class_names= train_data.classes
-
     # Use image folder to create data
     train_data = datasets.ImageFolder(train_dir, transform=transform)
     test_data = datasets.ImageFolder(test_dir, transform=transform)
+
+    # Get class name
+    class_names= train_data.classes
 
     # turn image into dataloader
     train_dataloader= DataLoader(train_data,

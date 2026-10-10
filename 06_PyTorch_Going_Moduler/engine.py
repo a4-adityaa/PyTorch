@@ -105,7 +105,7 @@ def test_step(model: torch.nn.Module,
 
             # calculate and accumulate accuracy
             test_pred_lables= test_pred_logits.argmax(dim=1)
-            test_acc += ((test_pred_lables == y).sum().item() / len(dataloader))
+            test_acc += ((test_pred_lables == y).sum().item() / len(y))
 
     # Adjust metrics to get avegare test loss and test accuracy
     test_loss= test_loss/ len(dataloader)
@@ -157,7 +157,7 @@ def train(model: torch.nn.Module,
               "test_acc":[]}
 
     # loop through training and testing steps for a number of epochs:
-    for epoch in tqdm(range(epoch)):
+    for epoch in tqdm(range(epochs)):
         train_loss, train_acc= train_step(model=model,
                                           dataloader=train_dataloader,
                                           loss_fn=loss_fn,
