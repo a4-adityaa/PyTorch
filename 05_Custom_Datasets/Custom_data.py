@@ -698,3 +698,14 @@ print(f"Prediction label: {custom_image_pred_label}")
 custom_image_pred_class = class_name[custom_image_pred_label.cpu()] # put pred label to CPU, otherwise will error
 custom_image_pred_class
 
+from helper_functions import pred_and_plot_image
+
+# Pred on our custom image
+plt.fig()
+pred_and_plot_image(model=model_1,
+                    image_path=custom_image_path,
+                    class_names=class_name,
+                    transform=custom_image_transform,
+                    device=device)
+# plt.show()
+
