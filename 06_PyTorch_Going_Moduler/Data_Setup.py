@@ -41,7 +41,7 @@ def create_dataloader(
 
     # Get class name
     class_names= train_data.classes
-    
+
     # Use image folder to create data
     train_data = datasets.ImageFolder(train_dir, transform=transform)
     test_data = datasets.ImageFolder(test_dir, transform=transform)
@@ -50,13 +50,13 @@ def create_dataloader(
     train_dataloader= DataLoader(train_data,
                                  batch_size=batch_size,
                                  shuffle=True,
-                                 num_workers=NUM_WORKERS,
+                                 num_workers=num_worker,
                                  pin_memory=True) # data transfer optimization btwn cpu to gpu
 
     test_dataloader= DataLoader(test_data,
                                 batch_size=batch_size,
                                 shuffle=False, # No need to shuffle test data
-                                num_workers=NUM_WORKERS,
+                                num_workers=num_worker,
                                 pin_memory=True)
 
     return train_dataloader, test_dataloader, class_names
