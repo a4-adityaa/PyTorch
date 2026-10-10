@@ -9,7 +9,7 @@ from torchinfo import summary
 
 # Let's set up device agnostic code
 device= "cuda" if torch.cuda.is_available() else "cpu"
-print(device)
+# print(device)
 
 # let's get our data
 import zipfile
@@ -87,3 +87,77 @@ train_dataloader, test_dataloader, class_names= Data_Setup.create_dataloader(tra
                                                                              transform=auto_transform,
                                                                              batch_size=32)
 # print(train_dataloader, test_dataloader, class_names)
+
+" Getting a PyTorch Model... Here we are going to use efficientNet_b0 "
+# OLD: Setup the model with pretrained weights and send it to the target device (this was prior to torchvision v0.13)
+# model = torchvision.models.efficientnet_b0(pretrained=True).to(device) # OLD method (with pretrained=True)
+
+# NEW: Setup the model with pretrained weights and send it to the target device (torchvision v0.13+)
+weights = torchvision.models.EfficientNet_B0_Weights.DEFAULT # .DEFAULT = best available weights 
+model = torchvision.models.efficientnet_b0(weights=weights).to(device)
+
+# print(model) # uncomment to output (it's very long)
+
+# Now we will print a summary of model EfficinetNet_B0 using torch.summary
+'''summary(model=model,
+        input_size=(32, 3, 224, 224),
+        col_names=["input_size", "output_size","num_params","trainable"],
+        col_width=20,
+        row_settings=["var_names"])
+'''
+
+# Freeze all base layers in the "features" section of the model(the feature extractor) by setting required_grad=False
+for param in model.features.parameters():
+    param.requires_grad=False
+
+torch.manual_seed(42)
+torch.cuda.manual_seed(42)
+
+# get the kength of class name
+output_shape= len(class_names)
+
+model.classifier= torch.nn.Sequential(
+    torch.nn.Dropout(p=0.2, inplace=True),
+    torch.nn.Linear(in_features=1280,
+                    out_features=output_shape,
+                    bias=True)
+).to(device)
+"Our model is updated and we will get summary again "
+
+summary(model,
+        input_size=(32, 3, 224, 224),
+        verbose=0,
+        col_names=["input_size", "output_size", "num_params", "trainable"],
+        col_width=20,
+        row_settings=["var_names"])
+
+" Now train our Model "
+# Define loss and optimizer
+loss_fn= nn.CrossEntropyLoss()
+optimizer= torch.optim.Adam(model.parameters(), lr=0.001)
+
+# set random seed
+torch.manual_seed(42)
+torch.cuda.manual_seed(42)
+
+#start the timer
+from timeit import default_timer as timer
+start_time= timer()
+
+# Setup training and save the results
+import engine
+results = engine.train(model=model,
+                       train_dataloader=train_dataloader,
+                       test_dataloader=test_dataloader,
+                       optimizer=optimizer,
+                       loss_fn=loss_fn,
+                       epochs=5,
+                       device=device)
+
+end_time= timer()
+print(f"[INFO] Total training time: {end_time-start_time:.3f} seconds")
+
+from helper_functions import plot_loss_curves
+import matplotlib.pyplot as plt
+plot_loss_curves(results)
+# plt.show()
