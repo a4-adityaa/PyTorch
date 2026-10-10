@@ -3,6 +3,10 @@
     "python.envFile": "${workspaceFolder}/.env",
 
     "terminal.integrated.env.windows": {
-        "PYTHONPATH": "${workspaceFolder}"
+        "PYTHONPATH": "${workspaceFolder}",
     }
+
+    "python.analysis.extraPaths": [
+        "./06_PyTorch_Going_Moduler"
+    ]
 }
