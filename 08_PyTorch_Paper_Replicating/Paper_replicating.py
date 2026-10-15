@@ -48,3 +48,19 @@ train_dataloader, test_dataloader, class_name = Data_Setup.create_dataloader(
 )
 # print(train_dataloader, test_dataloader, class_name)
 
+" Visulize a single image "
+
+# get a batch of images
+image_batch, label_batch = next(iter(train_dataloader))
+# get a single image from the batch
+image, label = image_batch[0], label_batch[0]
+# let's view the batch shape
+# print(image.shape, label)
+
+" let's plot the image "
+plt.imshow(image.permute(1,2,0))
+plt.title(class_name[label])
+plt.axis(False)
+# plt.show()
+
+" Replicating the ViT paper: an overview "
