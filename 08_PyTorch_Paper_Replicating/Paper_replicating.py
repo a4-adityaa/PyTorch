@@ -81,5 +81,3 @@ embedding_layer_input_shape = (height, width, color_chanels)
 embedding_layer_output_shape = (number_of_pathches, patch_size**2 * color_chanels)
 
 # print(f"Input shape (single 2D image) {embedding_layer_input_shape}")
-# print(f"Output shape (single 2D image) {embedding_layer_output_shape}")
-
